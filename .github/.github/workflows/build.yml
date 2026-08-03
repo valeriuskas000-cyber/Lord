@@ -1,4 +1,4 @@
-name: Build Lord App APK
+щname: Build Lord App APK
 
 on:
   push:
