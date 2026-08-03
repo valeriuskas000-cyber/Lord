@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential libssl-dev libffi-dev python3-dev zip unzip openjdk-17-jdk git autoconf libtool pkg-config
+          sudo apt install -y build-essential libssl-dev libffi-dev python3-dev zip unzip openjdk-17-jdk git autoconf libtool pkg-config gettext cmake
           pip install --upgrade pip setuptools "Cython<3.0" python-for-android
 
       - name: Build APK via p4a
@@ -33,7 +33,8 @@ jobs:
             --bootstrap=sdl2 \
             --requirements=python3,kivy \
             --arch=arm64-v8a \
-            --android-api=34
+            --android-api=34 \
+            --ndk-api=21
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
