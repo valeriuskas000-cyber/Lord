@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Python
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
@@ -28,13 +28,35 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y build-essential libssl-dev libffi-dev python3-dev zip unzip openjdk-17-jdk git autoconf libtool pkg-config gettext cmake libltdl-dev
-          pip install --upgrade pip setuptools "Cython<3.0" buildozer
+          pip install --upgrade pip setuptools "Cython<3.0" "buildozer==1.5.0"
+          
+          # Очищаем кэш pip
+          pip cache purge
 
-      - name: Build APK via Buildozer
+      - name: Configure & Build APK with Fake Trap
         run: |
-          if [ ! -f buildozer.spec ]; then
-            buildozer init
-          fi
+          # 1. Сносим старые хвосты сборок
+          rm -rf .buildozer bin build
+          rm -f buildozer.spec
+          
+          buildozer init
+          
+          # 2. Настройки архитектуры и требования
+          sed -i 's/^android.api = .*/android.api = 33/' buildozer.spec
+          sed -i 's/^android.minapi = .*/android.minapi = 24/' buildozer.spec
+          sed -i 's/^#\?android.archs = .*/android.archs = arm64-v8a/' buildozer.spec
+          sed -i 's/^requirements = .*/requirements = python3,kivy==2.3.0/' buildozer.spec
+          
+          # 3. ОБМАНКА: подсовываем 3.10 вместо 3.14 в PATH
+          mkdir -p fake_bin
+          ln -s $(which python3.10) fake_bin/python3.14
+          ln -s $(which python3.10) fake_bin/python3
+          export PATH="$(pwd)/fake_bin:$PATH"
+
+          # 4. Отключаем wheels
+          export APP_NO_WHEELS=1
+
+          # 5. Запуск
           yes | buildozer -v android debug
 
       - name: Upload APK Artifact
