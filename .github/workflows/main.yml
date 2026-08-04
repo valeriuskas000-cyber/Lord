@@ -28,35 +28,34 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y build-essential libssl-dev libffi-dev python3-dev zip unzip openjdk-17-jdk git autoconf libtool pkg-config gettext cmake libltdl-dev
-          pip install --upgrade pip setuptools "Cython<3.0" "buildozer==1.5.0"
           
-          # Очищаем кэш pip
+          # Синхронизируем Cython и зачищаем кэш
+          pip install --upgrade pip setuptools "Cython==0.29.36" "buildozer==1.5.0"
           pip cache purge
 
-      - name: Configure & Build APK with Fake Trap
+      - name: Configure & Build APK (Lord Control)
         run: |
-          # 1. Сносим старые хвосты сборок
+          # 1. Лорд выбрасывает всё лишнее и старое
           rm -rf .buildozer bin build
           rm -f buildozer.spec
           
           buildozer init
           
-          # 2. Настройки архитектуры и требования
+          # 2. Задаем правила для Android и Kivy
           sed -i 's/^android.api = .*/android.api = 33/' buildozer.spec
           sed -i 's/^android.minapi = .*/android.minapi = 24/' buildozer.spec
           sed -i 's/^#\?android.archs = .*/android.archs = arm64-v8a/' buildozer.spec
           sed -i 's/^requirements = .*/requirements = python3,kivy==2.3.0/' buildozer.spec
           
-          # 3. ОБМАНКА: подсовываем 3.10 вместо 3.14 в PATH
+          # 3. Синхронизируем вызовы Python через обманку
           mkdir -p fake_bin
           ln -s $(which python3.10) fake_bin/python3.14
           ln -s $(which python3.10) fake_bin/python3
           export PATH="$(pwd)/fake_bin:$PATH"
 
-          # 4. Отключаем wheels
           export APP_NO_WHEELS=1
 
-          # 5. Запуск
+          # 4. Запуск оркестра
           yes | buildozer -v android debug
 
       - name: Upload APK Artifact
