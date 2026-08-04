@@ -29,33 +29,27 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential libssl-dev libffi-dev python3-dev zip unzip openjdk-17-jdk git autoconf libtool pkg-config gettext cmake libltdl-dev
           
-          # Синхронизируем Cython и зачищаем кэш
+          # Лорд зажимает Cython в рамки 0.29.36
           pip install --upgrade pip setuptools "Cython==0.29.36" "buildozer==1.5.0"
           pip cache purge
 
-      - name: Configure & Build APK (Lord Control)
+      - name: Configure & Build APK (Lord Library Harmonizer)
         run: |
-          # 1. Лорд выбрасывает всё лишнее и старое
+          # 1. Очистка старых хвостов
           rm -rf .buildozer bin build
           rm -f buildozer.spec
           
           buildozer init
           
-          # 2. Задаем правила для Android и Kivy
+          # 2. Настройка архитектуры и API
           sed -i 's/^android.api = .*/android.api = 33/' buildozer.spec
           sed -i 's/^android.minapi = .*/android.minapi = 24/' buildozer.spec
           sed -i 's/^#\?android.archs = .*/android.archs = arm64-v8a/' buildozer.spec
-          sed -i 's/^requirements = .*/requirements = python3,kivy==2.3.0/' buildozer.spec
           
-          # 3. Синхронизируем вызовы Python через обманку
-          mkdir -p fake_bin
-          ln -s $(which python3.10) fake_bin/python3.14
-          ln -s $(which python3.10) fake_bin/python3
-          export PATH="$(pwd)/fake_bin:$PATH"
-
-          export APP_NO_WHEELS=1
-
-          # 4. Запуск оркестра
+          # 3. Лорд принудительно подгоняет библиотеки троицы
+          sed -i 's/^requirements = .*/requirements = python3,kivy/' buildozer.spec
+          
+          # 4. Запуск сборки
           yes | buildozer -v android debug
 
       - name: Upload APK Artifact
