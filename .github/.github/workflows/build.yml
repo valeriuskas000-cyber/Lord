@@ -1,49 +1,49 @@
-name: Build APK
+name: Build and Release APK
 
 on:
   push:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 1. Мгновенная очистка 0.001s и автовосстановление
-      - name: Instant Purification and Self-Healing
-        run: |
-          echo "Executing instant purification..."
-          pkill -9 -f "buildozer" || true
-          pkill -9 -f "python-for-android" || true
-          find . -type f \( -name "*.so" -o -name "*.pyc" -o -name "*.tmp" \) -exec rm -rf {} + 2>/dev/null
-          chmod -R 777 . 2>/dev/null
-          echo "Purification complete. Zero trace left."
-
-      # 2. Установка системных зависимостей и линковщика lld
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk lld
+          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk lld autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake
 
-      # 3. Сборка APK через Buildozer
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "cython==0.29.33" buildozer
+
+      # Автоматический акцепт всех лицензий Android SDK
+      - name: Accept Android Licenses
+        run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          yes | sdkmanager --licenses || true
+
       - name: Build APK with Buildozer
-        uses: Artemis-Studio/buildozer-action@v1.2
-        with:
-          command: buildozer android debug
-          buildozer_version: master
+        run: |
+          buildozer android debug
 
-      # 4. Выгрузка готового APK в артефакты
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: package-apk
+          name: LordApp-APK
           path: bin/*.apk
