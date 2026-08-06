@@ -1,64 +1,42 @@
-name: Build and Release APK
+[app]
 
-on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
+# (str) Title of your application
+title = Lord
 
-permissions:
-  contents: write
+# (str) Package name
+package.name = lordapp
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# (str) Package domain (needed for android/ios packaging)
+package.domain = org.lord
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+# (str) Source code where the main.py lives
+source.dir = .
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+# (list) Source files to include (let empty to include all the files)
+source.include_exts = py,png,jpg,kv,atlas
 
-      # 1. Зачистка 0.001s и восстановление
-      - name: Instant Purification and Self-Healing
-        run: |
-          echo "Executing instant purification..."
-          pkill -9 -f "buildozer" || true
-          pkill -9 -f "python-for-android" || true
-          find . -type f \( -name "*.so" -o -name "*.pyc" -o -name "*.tmp" \) -exec rm -rf {} + 2>/dev/null
-          chmod -R 777 . 2>/dev/null
-          echo "Purification complete. Zero trace left."
+# (list) Application requirements
+requirements = python3, kivy==2.3.0, cython==0.29.33, qrcode, pillow, websocket-client
 
-      # 2. Системные зависимости и lld
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk lld
+# (list) Permissions
+android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
 
-      # 3. Сборка APK
-      - name: Build APK with Buildozer
-        uses: Artemis-Studio/buildozer-action@v1.2
-        with:
-          command: buildozer android debug
-          buildozer_version: master
+# (int) Target Android API
+android.api = 33
 
-      # 4. Сохранение в артефакты
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: package-apk
-          path: bin/*.apk
+# (int) Minimum API required
+android.minapi = 21
 
-      # 5. ПРЯМАЯ ССЫЛКА НА СКАЧИВАНИЕ (Создание GitHub Release)
-      - name: Create GitHub Release with direct link
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: Lord App Release v1.0.${{ github.run_number }}
-          draft: false
-          prerelease: false
-          files: bin/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# (list) Supported architectures
+android.archs = arm64-v8a, armeabi-v7a
+
+# (bool) Accept SDK license automatically
+android.accept_sdk_license = True
+
+[buildozer]
+
+# (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
+log_level = 2
+
+# (int) Display warning if buildozer is run as root (0 = false, 1 = true)
+warn_on_root = 1
