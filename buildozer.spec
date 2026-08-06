@@ -12,37 +12,39 @@ package.domain = org.lord
 # (str) Source code where the main.py live
 source.dir = .
 
-# (list) Source files to include (let empty to include all the files)
+# (list) Source files to include
 source.include_exts = py,png,jpg,kv,atlas
 
 # (str) Application versioning
 version = 0.1
 
 # (list) Application requirements
-# Все задействованные модули: 4 канала сокетов, QR, графика Kivy
-requirements = python3,kivy,qrcode,pillow,websocket-client
+# Явно фиксируем python3==3.10.12 чтобы не подтягивался багованный 3.14!
+requirements = python3==3.10.12,kivy==2.3.0,qrcode,pillow,websocket-client
 
 # (list) Permissions
-# Разрешения для работы 4-канальной сети с биржей и записи QR
 android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
 
 # (int) Target Android API
 android.api = 33
 
-# (int) Minimum API your APK will support
+# (int) Minimum API
 android.minapi = 21
 
-# (str) Android NDK version
+# (str) Android NDK version (стабильная версия)
 android.ndk = 25b
 
-# (bool) If True, then skip try to update the code
+# (bool) If True, skip try to update code
 android.skip_update = False
 
-# (bool) If True, the application will be accept incoming connections
+# (bool) Accept SDK license
 android.accept_sdk_license = True
 
-# (str) The orientation (portrait, landscape or all)
+# (str) Orientation
 orientation = portrait
 
-# (bool) Indicate if the application should be fullscreen or not
+# (bool) Fullscreen
 fullscreen = 0
+
+# (list) Architectures to build for (только arm64-v8a для скорости и стабильности на Redmi)
+android.archs = arm64-v8a
