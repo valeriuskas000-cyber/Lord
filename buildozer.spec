@@ -1,42 +1,49 @@
 [app]
 
 # (str) Title of your application
-title = Lord
+title = Lord 0.001
 
 # (str) Package name
 package.name = lordapp
 
-# (str) Package domain (needed for android/ios packaging)
+# (str) Package domain
 package.domain = org.lord
 
-# (str) Source code where the main.py lives
+# (str) Source code location
 source.dir = .
 
-# (list) Source files to include (let empty to include all the files)
+# (list) Source files to include
 source.include_exts = py,png,jpg,kv,atlas
 
+# (str) Application versioning (БЕЗ РЕШЕТКИ В НАЧАЛЕ!)
+version = 0.1
+
 # (list) Application requirements
-requirements = python3, kivy==2.3.0, cython==0.29.33, qrcode, pillow, websocket-client
+requirements = python3==3.10.12,kivy==2.3.0,qrcode,pillow,websocket-client
 
 # (list) Permissions
-android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
+android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
 
 # (int) Target Android API
 android.api = 33
 
-# (int) Minimum API required
+# (int) Minimum API
 android.minapi = 21
 
-# (list) Supported architectures
-android.archs = arm64-v8a, armeabi-v7a
+# (str) Android NDK version
+android.ndk = 25b
 
-# (bool) Accept SDK license automatically
+# (bool) Skip update
+android.skip_update = False
+
+# (bool) Accept SDK license
 android.accept_sdk_license = True
 
-[buildozer]
+# (str) Orientation
+orientation = portrait
 
-# (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
-log_level = 2
+# (bool) Fullscreen
+fullscreen = 0
 
-# (int) Display warning if buildozer is run as root (0 = false, 1 = true)
-warn_on_root = 1
+# (list) Architectures to build for
+android.archs = arm64-v8a
