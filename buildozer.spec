@@ -7,7 +7,7 @@ source.include_exts = py,png,jpg,kv,atlas
 
 version = 0.1
 
-requirements = python3==3.10.12,kivy==2.3.0,qrcode,pillow,websocket-client
+python3==3.10.12,kivy==2.3.0,qrcode,pillow,websocket-client
 android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
 
 android.api = 33
