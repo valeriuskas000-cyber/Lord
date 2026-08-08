@@ -1,24 +1,13 @@
 [app]
 
-# (str) Title of your application
 title = Lord App
-
-# (str) Package name
 package.name = lordapp
-
-# (str) Package domain
 package.domain = org.lord
-
-# (list) Source files
+source.dir = .
+version = 0.1
 source.include_exts = py,png,jpg,kv,atlas
-
-# (list) Application requirements
 requirements = python3,kivy,cython==0.29.37
-
-# (str) Supported orientations
 orientation = portrait
-
-# (list) The Android archs to build for
 arch = arm64-v8a
 
 [buildozer]
