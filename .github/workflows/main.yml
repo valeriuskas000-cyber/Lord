@@ -22,12 +22,20 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
 
-    - name: Install Dependencies
+    - name: Install Buildozer and Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libstdc++6 patchelf
+        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libstdc++6 patchelf build-essential libssl-dev libffi-dev python3-pip
+        pip install --upgrade pip
+        pip install --user cython==0.29.37 buildozer
 
     - name: Build APK with Buildozer
-      uses: ArtemSBulgakov/buildozer-action@v1
+      run: |
+        export PATH=$PATH:~/.local/bin
+        buildozer -v android debug
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
       with:
-        command: buildozer -v android debug
+        name: package
+        path: bin/*.apk
