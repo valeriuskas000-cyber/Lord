@@ -1,20 +1,44 @@
-[app]
+name: Build Lord App APK
 
-title = Lord
-package.name = lordapp
-package.domain = org.lord
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
-version = 0.1
+on:
+  push:
+    branches: [ main ]
 
-requirements = python3,kivy,cython==0.29.37
+jobs:
+  build:
+    runs-on: ubuntu-22.04
 
-android.permissions = INTERNET, CAMERA, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
+    steps:
+    - uses: actions/checkout@v4
 
-android.api = 33
-android.minapi = 21
-android.ndk = 25b
-android.skip_update = False
-android.accept_sdk_license = True
-orientation = portrait
-fullscreen = 0
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+
+    - name: Install Buildozer and Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libstdc++6 patchelf build-essential libssl-dev libffi-dev python3-pip
+        pip install --upgrade pip
+        pip install --user cython==0.29.37 buildozer
+
+    - name: Build APK with Buildozer
+      run: |
+        export PATH=$PATH:~/.local/bin
+        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
+        export ANDROID_NDK=/usr/local/lib/android/sdk/ndk/25.2.9519653
+        buildozer clean
+        buildozer -v android debug
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: package
+        path: bin/*.apk
