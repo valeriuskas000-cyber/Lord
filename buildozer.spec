@@ -1,44 +1,26 @@
-name: Build Lord App APK
+[app]
 
-on:
-  push:
-    branches: [ main ]
+# (str) Title of your application
+title = Lord App
 
-jobs:
-  build:
-    runs-on: ubuntu-22.04
+# (str) Package name
+package.name = lordapp
 
-    steps:
-    - uses: actions/checkout@v4
+# (str) Package domain
+package.domain = org.lord
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+# (list) Source files
+source.include_exts = py,png,jpg,kv,atlas
 
-    - name: Set up Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '11'
+# (list) Application requirements
+requirements = python3,kivy,cython==0.29.37
 
-    - name: Install Buildozer and Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libstdc++6 patchelf build-essential libssl-dev libffi-dev python3-pip
-        pip install --upgrade pip
-        pip install --user cython==0.29.37 buildozer
+# (str) Supported orientations
+orientation = portrait
 
-    - name: Build APK with Buildozer
-      run: |
-        export PATH=$PATH:~/.local/bin
-        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
-        export ANDROID_NDK=/usr/local/lib/android/sdk/ndk/25.2.9519653
-        buildozer clean
-        buildozer -v android debug
+# (list) The Android archs to build for
+arch = arm64-v8a
 
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
+[buildozer]
+log_level = 2
+warn_on_root = 1
