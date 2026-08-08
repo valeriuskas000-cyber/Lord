@@ -33,9 +33,3 @@ jobs:
       run: |
         export PATH=$PATH:~/.local/bin
         buildozer -v android debug
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
