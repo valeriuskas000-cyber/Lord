@@ -32,4 +32,12 @@ jobs:
     - name: Build APK with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
+        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
+        export ANDROID_NDK=/usr/local/lib/android/sdk/ndk/25.2.9519653
         buildozer -v android debug
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: package
+        path: bin/*.apk
