@@ -43,13 +43,19 @@ jobs:
       run: |
         export PATH=$PATH:~/.local/bin
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25b
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+
+        # Запускаем сборку в фоне или даем ей один раз упасть, 
+        # ЛИБО заранее создаем структуру папок, которую он проверяет, 
+        # скопировав туда реальный aidl из системного Android SDK GitHub
         
-        sed -i 's/^#* *android.build_tools_version.*/android.build_tools_version = 33.0.2/g' buildozer.spec
-        sed -i 's/^#* *android.api.*/android.api = 33/g' buildozer.spec
-        sed -i 's/^#* *android.min_api.*/android.min_api = 21/g' buildozer.spec
+        mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0/
         
-        if ! grep -q "android.build_tools_version" buildozer.spec; then
-          echo "android.build_tools_version = 33.0.2" >> buildozer.spec
+        # Копируем всё из системного build-tools (там точно есть aidl) в ту папку, которую он требует
+        if [ -d "$ANDROID_HOME/build-tools/33.0.2" ]; then
+          cp -r $ANDROID_HOME/build-tools/33.0.2/* ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0/
+        elif [ -d "$ANDROID_HOME/build-tools/34.0.0" ]; then
+          cp -r $ANDROID_HOME/build-tools/34.0.0/* ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0/
         fi
 
         buildozer -v android debug
