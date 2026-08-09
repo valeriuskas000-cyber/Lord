@@ -4,20 +4,24 @@
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25b
         export ANDROID_HOME=/usr/local/lib/android/sdk
 
-        # Автоматически принимаем все лицензии Android SDK, чтобы пакеты не сбрасывались
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        # Создаем файлы лицензий
+        mkdir -p $ANDROID_HOME/licenses
+        echo "24333f8a63b6825ea9c5514f83c2829b004d1fb5" > $ANDROID_HOME/licenses/android-sdk-license
+        echo "d56f5187479451eabf01fb78af6dfcb131a648b0" >> $ANDROID_HOME/licenses/android-sdk-license
+        echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
 
-        # Принудительно устанавливаем build-tools 33.0.2 через sdkmanager с автопринятием
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33"
+        # Устанавливаем нужные инструменты в системный SDK
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-        # Прописываем версию 33.0.2 прямо в спек
+        # Создаем папки, куда Buildozer будет заглядывать в поисках aidl
+        mkdir -p ~/.buildozer/android/platform/android-sdk/
+        
+        # Копируем всё из системного SDK прямо в рабочую директорию Buildozer, чтобы он ничего не искал
+        cp -r $ANDROID_HOME/* ~/.buildozer/android/platform/android-sdk/
+
+        # Жестко прописываем версии в спек
         sed -i 's/^#* *android.build_tools_version.*/android.build_tools_version = 33.0.2/g' buildozer.spec
         sed -i 's/^#* *android.api.*/android.api = 33/g' buildozer.spec
         sed -i 's/^#* *android.min_api.*/android.min_api = 21/g' buildozer.spec
 
         buildozer -v android debug
-- name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
