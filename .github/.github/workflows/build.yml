@@ -1,72 +1,25 @@
-name: Build and Release APK
-
-on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
-
-permissions:
-  contents: write
-
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Set up Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '11'
-
-    - name: Install Dependencies and Buildozer
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libstdc++6 patchelf build-essential libssl-dev libffi-dev python3-pip
-        pip install --upgrade pip
-        pip install --user cython==0.29.37
-        pip install --user --upgrade buildozer
-
-    - name: Absolute Hardlink Shield for Build Tools 37
+    - name: Ultimate Override Trap for 37.0.0
       run: |
         export PATH=$PATH:~/.local/bin
         export ANDROID_HOME=/usr/local/lib/android/sdk
-        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
-
-        # Ставим базовые инструменты 33.0.2
+        
+        # 1. Готовим правильную версию
         echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;33.0.2" "platforms;android-33" "platform-tools"
+        
+        # 2. Создаем структуру и копируем рабочие файлы в 37.0.0
+        mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0/
+        cp -r $ANDROID_HOME/build-tools/33.0.2/* ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0/
+        
+        # 3. Делаем перехватчик прямо в текущей папке
+        mkdir -p ~/bin
+        echo '#!/bin/bash' > ~/bin/sdkmanager
+        echo 'echo "Intercepted: Using 33.0.2 instead of 37.0.0"' >> ~/bin/sdkmanager
+        echo 'exit 0' >> ~/bin/sdkmanager
+        chmod +x ~/bin/sdkmanager
+        export PATH=~/bin:$PATH
 
-        # Создаем структуру в системном SDK и делаем точную копию-обманку для 37.0.0 прямо из 33.0.2
-        mkdir -p $ANDROID_HOME/build-tools/
-        if [ -d "$ANDROID_HOME/build-tools/33.0.2" ]; then
-          rm -rf $ANDROID_HOME/build-tools/37.0.0
-          cp -r $ANDROID_HOME/build-tools/33.0.2 $ANDROID_HOME/build-tools/37.0.0
-        fi
+        # 4. Защищаем от удаления
+        chmod -R 555 ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0
 
-        # Клонируем готовый SDK в рабочую зону Buildozer
-        mkdir -p ~/.buildozer/android/platform/
-        rm -rf ~/.buildozer/android/platform/android-sdk
-        cp -r $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
-
-        # Запускаем сборку
+        # 5. Сборка
         buildozer -v android debug
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
-[buildozer]
-log_level = 2
-warn_on_root = 1
-
-android.build_tools_version = 33.0.2
-android.sdk = 33
-android.api = 33
