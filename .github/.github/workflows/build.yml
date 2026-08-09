@@ -38,6 +38,16 @@ jobs:
       run: |
         export PATH=$PATH:~/.local/bin
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25b
+        
+        # Создаем папку 37.0.0 и копируем туда рабочие инструменты, включая aidl
+        ANDROID_HOME=/usr/local/lib/android/sdk
+        mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0/
+        if [ -d "$ANDROID_HOME/build-tools/33.0.2" ]; then
+          cp -r $ANDROID_HOME/build-tools/33.0.2/* ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0/
+        elif [ -d "$ANDROID_HOME/build-tools/34.0.0" ]; then
+          cp -r $ANDROID_HOME/build-tools/34.0.0/* ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0/
+        fi
+
         buildozer -v android debug
 
     - name: Upload APK Artifact
