@@ -4,20 +4,28 @@
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25b
         export ANDROID_HOME=/usr/local/lib/android/sdk
 
-        # Создаем файлы лицензий
+        # Создаем файлы лицензий в системном SDK
         mkdir -p $ANDROID_HOME/licenses
         echo "24333f8a63b6825ea9c5514f83c2829b004d1fb5" > $ANDROID_HOME/licenses/android-sdk-license
         echo "d56f5187479451eabf01fb78af6dfcb131a648b0" >> $ANDROID_HOME/licenses/android-sdk-license
-        echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
+        echo "84831b9409646a918e30573bab4c9c91346d8abd" >> $ANDROID_HOME/licenses/android-sdk-preview-license
 
-        # Устанавливаем нужные инструменты в системный SDK
+        # Ставим инструменты через sdkmanager
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-        # Создаем папки, куда Buildozer будет заглядывать в поисках aidl
+        # Создаем базовую структуру папок Buildozer заранее
         mkdir -p ~/.buildozer/android/platform/android-sdk/
-        
-        # Копируем всё из системного SDK прямо в рабочую директорию Buildozer, чтобы он ничего не искал
-        cp -r $ANDROID_HOME/* ~/.buildozer/android/platform/android-sdk/
+
+        # Удаляем пустую папку build-tools в хомяке Buildozer (если она есть) и вешаем ЖЕСТКУЮ СИМВОЛИЧЕСКУЮ ССЫЛКУ на системный SDK
+        rm -rf ~/.buildozer/android/platform/android-sdk/build-tools
+        ln -s $ANDROID_HOME/build-tools ~/.buildozer/android/platform/android-sdk/build-tools
+
+        # Также связываем platform-tools и platforms для полного порядка
+        rm -rf ~/.buildozer/android/platform/android-sdk/platform-tools
+        ln -s $ANDROID_HOME/platform-tools ~/.buildozer/android/platform/android-sdk/platform-tools
+
+        rm -rf ~/.buildozer/android/platform/android-sdk/platforms
+        ln -s $ANDROID_HOME/platforms ~/.buildozer/android/platform/android-sdk/platforms
 
         # Жестко прописываем версии в спек
         sed -i 's/^#* *android.build_tools_version.*/android.build_tools_version = 33.0.2/g' buildozer.spec
