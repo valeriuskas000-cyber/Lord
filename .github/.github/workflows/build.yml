@@ -34,10 +34,17 @@ jobs:
         pip install --user cython==0.29.37
         pip install --user --upgrade buildozer
 
-    - name: Install Android Build Tools and SDK components
+    - name: Zakoltyuit SDK and Buildozer Loop
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+        
+        # Принудительно устанавливаем инструменты в системный контур
         echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;33.0.2" "platforms;android-33" "platform-tools"
+        
+        # Закольцовываем папки Buildozer прямо на рабочий SDK, очищая пустые дубли
+        mkdir -p ~/.buildozer/android/platform/
+        ln -sfn $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
 
     - name: Build APK with Buildozer
       run: |
