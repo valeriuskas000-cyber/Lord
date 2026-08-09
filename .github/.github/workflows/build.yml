@@ -34,23 +34,26 @@ jobs:
         pip install --user cython==0.29.37
         pip install --user --upgrade buildozer
 
-    - name: Zakoltyuit SDK and Buildozer Loop
+    - name: Put SDK in Home Runner and Link Connections
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
-        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
         
-        # Принудительно устанавливаем инструменты в системный контур
-        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;33.0.2" "platforms;android-33" "platform-tools"
-        
-        # Закольцовываем папки Buildozer прямо на рабочий SDK, очищая пустые дубли
+        # Создаем директорию в home runner, куда Buildozer гарантированно смотрит
         mkdir -p ~/.buildozer/android/platform/
-        ln -sfn $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
+        
+        # Переносим и связываем всю структуру SDK прямо в домашнюю зону runner'а
+        rm -rf ~/.buildozer/android/platform/android-sdk
+        cp -r $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
+        
+        # Защищаем права и гарантируем наличие aidl в нужной версии
+        chmod -R +x ~/.buildozer/android/platform/android-sdk/
+        
+        # Устанавливаем недостающие инструменты на здесь и сейчас в домашних связях
+        echo "y" | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=~/.buildozer/android/platform/android-sdk "build-tools;33.0.2" "platforms;android-33" "platform-tools"
 
     - name: Build APK with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        export ANDROID_HOME=/usr/local/lib/android/sdk
-        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
         buildozer -v android debug
 
     - name: Upload APK Artifact
