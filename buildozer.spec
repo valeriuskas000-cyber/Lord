@@ -6,7 +6,7 @@ package.domain = org.lord
 source.dir = .
 version = 0.1
 source.include_exts = py,png,jpg,kv,atlas
-requirements = python3,kivy,cython==0.29.37
+requirements = python3,kivy,cython
 orientation = portrait
 arch = arm64-v8a
 
