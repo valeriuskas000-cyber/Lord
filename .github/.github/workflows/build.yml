@@ -34,25 +34,26 @@ jobs:
         pip install --user cython==0.29.37
         pip install --user --upgrade buildozer
 
-    - name: Ultimate Override and Buildozer Toolchain Patch
+    - name: Absolute Hardlink Shield for Build Tools 37
       run: |
         export PATH=$PATH:~/.local/bin
         export ANDROID_HOME=/usr/local/lib/android/sdk
         export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
 
-        # Ставим проверенные инструменты
+        # Ставим базовые инструменты 33.0.2
         echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;33.0.2" "platforms;android-33" "platform-tools"
 
-        # Создаем структуру и копируем SDK
+        # Создаем структуру в системном SDK и делаем точную копию-обманку для 37.0.0 прямо из 33.0.2
+        mkdir -p $ANDROID_HOME/build-tools/
+        if [ -d "$ANDROID_HOME/build-tools/33.0.2" ]; then
+          rm -rf $ANDROID_HOME/build-tools/37.0.0
+          cp -r $ANDROID_HOME/build-tools/33.0.2 $ANDROID_HOME/build-tools/37.0.0
+        fi
+
+        # Клонируем готовый SDK в рабочую зону Buildozer
         mkdir -p ~/.buildozer/android/platform/
         rm -rf ~/.buildozer/android/platform/android-sdk
         cp -r $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
-
-        # Патчим сам python-скрипт buildozer, чтобы он жестко искал 33.0.2 вместо несуществующей 37-й версии
-        BUILDOZER_PATH=$(python3 -c "import buildozer; import os; print(os.path.dirname(buildozer.__file__))")
-        echo "Patching buildozer at $BUILDOZER_PATH"
-        find "$BUILDOZER_PATH" -type f -name "*.py" -exec sed -i 's/37\.0\.0/33.0.2/g' {} +
-        find "$BUILDOZER_PATH" -type f -name "*.py" -exec sed -i 's/37\.[0-9]\.[0-9]/33.0.2/g' {} +
 
         # Запускаем сборку
         buildozer -v android debug
