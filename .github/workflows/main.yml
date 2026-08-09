@@ -2,7 +2,11 @@ name: Build Lord App APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -22,19 +26,19 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
 
-    - name: Install Buildozer and Dependencies
+    - name: Install Dependencies and Buildozer
       run: |
         sudo apt-get update
         sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libstdc++6 patchelf build-essential libssl-dev libffi-dev python3-pip
         pip install --upgrade pip
-        pip install --user cython==0.29.37 buildozer
+        pip install --user cython==0.29.37
+        pip install --user --upgrade buildozer
 
     - name: Build APK with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
         export ANDROID_NDK=/usr/local/lib/android/sdk/ndk/25.2.9519653
-
         buildozer -v android debug
 
     - name: Upload APK Artifact
