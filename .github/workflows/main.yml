@@ -1,37 +1,75 @@
-    - name: Build APK with Buildozer
-      run: |
-        export PATH=$PATH:~/.local/bin
-        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25b
-        export ANDROID_HOME=/usr/local/lib/android/sdk
+name: Build and Release APK
 
-        # Заготовка лицензий
-        mkdir -p $ANDROID_HOME/licenses
-        echo "24333f8a63b6825ea9c5514f83c2829b004d1fb5" > $ANDROID_HOME/licenses/android-sdk-license
-        echo "d56f5187479451eabf01fb78af6dfcb131a648b0" >> $ANDROID_HOME/licenses/android-sdk-license
-        echo "84831b9409646a918e30573bab4c9c91346d8abd" >> $ANDROID_HOME/licenses/android-sdk-preview-license
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
-        # Ставим компоненты
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+permissions:
+  contents: write
 
-        # Закольцовываем версии в спек-файле
-        sed -i 's/^#* *android.build_tools_version.*/android.build_tools_version = 33.0.2/g' buildozer.spec
-        sed -i 's/^#* *android.api.*/android.api = 33/g' buildozer.spec
-        sed -i 's/^#* *android.min_api.*/android.min_api = 21/g' buildozer.spec
+jobs:
+  build:
+    runs-on: ubuntu-22.04
 
-        # КОЛЬЦЕВАЯ ИЗОЛЯЦИЯ:
-        # Уничтожаем любые попытки Buildozer создать свою пустую зону и замыкаем его на системный SDK по кругу
-        mkdir -p ~/.buildozer/android/platform/
-        rm -rf ~/.buildozer/android/platform/android-sdk
-        
-        # Создаем кольцо симлинков
-        ln -s $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
+    steps:
+      - uses: actions/checkout@v4
 
-        # Дополнительно замыкаем build-tools внутри самого системного SDK на случай запросов других версий (37.0.0 и т.д.)
-        cd $ANDROID_HOME/build-tools
-        if [ -d "33.0.2" ] && [ ! -e "37.0.0" ]; then
-          ln -s 33.0.2 37.0.0
-        fi
-        cd -
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-        # Запуск сборки в замкнутом контуре
-        buildozer -v android debug
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Clear Buildozer Cache
+        run: |
+          rm -rf ~/.buildozer
+          rm -rf .buildozer
+
+      - name: Install Dependencies and Buildozer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libstdc++6 patchelf build-essential libssl-dev libffi-dev python3-pip
+          pip install --upgrade pip
+          pip install --user cython==0.29.37
+          pip install --user --upgrade buildozer
+
+      - name: Build APK with Buildozer
+        run: |
+          export PATH=$PATH:~/.local/bin
+          export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25b
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+
+          mkdir -p $ANDROID_HOME/licenses
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fb5" > $ANDROID_HOME/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a648b0" >> $ANDROID_HOME/licenses/android-sdk-license
+          echo "84831b9409646a918e30573bab4c9c91346d8abd" >> $ANDROID_HOME/licenses/android-sdk-preview-license
+
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
+          sed -i 's/^#* *android.build_tools_version.*/android.build_tools_version = 33.0.2/g' buildozer.spec
+          sed -i 's/^#* *android.api.*/android.api = 33/g' buildozer.spec
+          sed -i 's/^#* *android.min_api.*/android.min_api = 21/g' buildozer.spec
+
+          mkdir -p ~/.buildozer/android/platform/
+          rm -rf ~/.buildozer/android/platform/android-sdk
+          ln -s $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
+
+          cd $ANDROID_HOME/build-tools
+          if [ -d "33.0.2" ] && [ ! -e "37.0.0" ]; then
+            ln -s 33.0.2 37.0.0
+          fi
+          cd -
+
+          buildozer -v android debug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: bin/*.apk
