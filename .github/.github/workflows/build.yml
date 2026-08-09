@@ -1,8 +1,8 @@
-name: Build Lord App APK
+name: Build and Release APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 permissions:
@@ -34,11 +34,16 @@ jobs:
         pip install --user cython==0.29.37
         pip install --user --upgrade buildozer
 
+    - name: Install Android Build Tools and SDK components
+      run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;33.0.2" "platforms;android-33" "platform-tools"
+
     - name: Build APK with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
-        export ANDROID_NDK=/usr/local/lib/android/sdk/ndk/25.2.9519653
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
         buildozer -v android debug
 
     - name: Upload APK Artifact
