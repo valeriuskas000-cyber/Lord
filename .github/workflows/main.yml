@@ -1,8 +1,8 @@
-name: Build Lord App APK
+name: Build and Release APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 permissions:
@@ -37,13 +37,7 @@ jobs:
     - name: Build APK with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
-[buildozer]
-log_level = 2
-warn_on_root = 1
-android.build_tools_version = 33.0.2
-android.sdk = 33
-android.api = 33        export ANDROID_NDK=/usr/local/lib/android/sdk/ndk/25.2.9519653
+        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25b
         buildozer -v android debug
 
     - name: Upload APK Artifact
