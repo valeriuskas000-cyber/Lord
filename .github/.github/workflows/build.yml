@@ -34,40 +34,31 @@ jobs:
         pip install --user cython==0.29.37
         pip install --user --upgrade buildozer
 
-    - name: Dual Trap and Mirror Intersection for SDK
+    - name: Physical Deletion of Illiquid Paths and Here-and-Now Injection
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
         
-        # Строим двойную ловушку: и системный путь, и локальный дом runner'а
-        mkdir -p ~/.buildozer/android/platform/
+        # Гарантированно ставим актуальные инструменты в системный SDK
+        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;33.0.2" "platforms;android-33" "platform-tools"
+        
+        # Полностью сносим старые неликвидные пути и создаем структуру заново здесь и сейчас
         rm -rf ~/.buildozer/android/platform/android-sdk
+        mkdir -p ~/.buildozer/android/platform/
         cp -r $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
         
-        # Ставим все инструменты во все потенциальные точки спроса
-        echo "y" | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=~/.buildozer/android/platform/android-sdk "build-tools;33.0.2" "platforms;android-33" "platform-tools"
-        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "build-tools;33.0.2" "platforms;android-33" "platform-tools"
-
-        # Создаем зеркала и перекрестные обманки (если попытается найти одно — наткнется на другое)
+        # Физически дублируем рабочие билды на место любых запрашиваемых версий без пустых ссылок
         cd ~/.buildozer/android/platform/android-sdk/build-tools/
-        for target_dir in 33.0.0 37.0.0 34.0.0 current; do
-          if [ ! -e "$target_dir" ]; then
-            if [ -d "33.0.2" ]; then
-              ln -sfn 33.0.2 "$target_dir"
-            else
-              # Универсальная заглушка на любой доступный вариант внутри
-              first_available=$(ls -d */ | head -n 1 | tr -d '/')
-              if [ -n "$first_available" ]; then
-                ln -sfn "$first_available" "$target_dir"
-              fi
-            fi
-          fi
-        done
+        if [ -d "33.0.2" ]; then
+          rm -rf 37.0.0 33.0.0
+          cp -r 33.0.2 37.0.0
+          cp -r 33.0.2 33.0.0
+        fi
 
     - name: Build APK with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
-        export ANDROID_SDK_ROOT=~/.buildozer/android/platform/android-sdk
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
         buildozer -v android debug
 
     - name: Upload APK Artifact
